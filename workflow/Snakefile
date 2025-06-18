@@ -1,0 +1,40 @@
+from snakemake.utils import validate
+
+workdir: "/zata/zippy/ramirezc/gembs_smk"
+configfile: "config/config.yml"
+# validate(config, "config/schemas/config.schema.yaml")
+validate(config["samples"], "../config/schemas/samples.schema.yml")
+
+include: "rules/common.smk"
+include: "rules/make_conf.smk"
+include: "rules/make_gembs_metadata.smk"
+include: "rules/gemsbs_prepare_and_index.smk"
+include: "rules/gembs_map.smk"
+include: "rules/make_average_coverage.smk"
+include: "rules/gembs_calls.smk"
+include: "rules/gembs_extract.smk"
+include: "rules/make_coverage_bigwig.smk"
+include: "rules/make_bedmethyl_pearson_correlation.smk"
+include: "rules/gembs_report.smk"
+include: "rules/parse_map_qc_html.smk"
+
+onstart:
+    print("\n--- Analysis started ---\n")
+onsuccess:
+    print("\n--- Workflow finished! ---\n")
+onerror:
+    print("\n--- An error occurred! ---\n")
+
+rule all:
+    input:
+        f"{config["gembs_base"]}/gembs.conf",
+        f"{config["gembs_base"]}/gembs_metadata.csv",
+        f"{config["gembs_base"]}/indexes/.continue",
+        get_mapping_outputs,
+        get_average_coverage_outputs,
+        get_call_outputs,
+        get_extract_outputs,
+        get_coverage_bigwigs,
+        get_bedmethyl_pearson_correlation_outputs,
+        f"{config["gembs_base"]}/report/.continue",
+        get_parse_map_qc_html_outputs

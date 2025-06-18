@@ -1,0 +1,9 @@
+# cores: 1
+# debug: True
+
+cores: 64
+rerun-incomplete: True
+printshellcmds: True
+
+resources:
+  mapping_jobs: 1
