@@ -54,7 +54,7 @@ def main():
     """
     We already integration test this in the WDL tests, no need for Python test coverage.
     """
-    bedmethyls = [load_bedmethyl(bedmethyl) for bedmethyl in snakemake.input.bedmethyl]
+    bedmethyls = [load_bedmethyl(bedmethyl) for bedmethyl in snakemake.input.bedmethyls]
     corr_matrix = make_pairwise_correlations(bedmethyls)
     corr_matrix.to_csv(snakemake.output.csv, sep="\t")
 

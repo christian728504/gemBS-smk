@@ -1,6 +1,6 @@
 rule gembs_map:
     input:
-        signal=rules.gembs_prepare_and_index.output.signal,
+        signal="results/indexes/.continue",
     output:
         bam="results/mapping/{barcode}/{barcode}.bam",
         csi="results/mapping/{barcode}/{barcode}.bam.csi",
@@ -8,6 +8,7 @@ rule gembs_map:
         singal="results/mapping/{barcode}/.continue"
     resources:
         mapping_jobs = 1
+    container: "docker://clarity001/gembs:latest"
     shell:
         """
         gemBS map --barcode {wildcards.barcode}

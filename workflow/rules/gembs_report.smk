@@ -11,10 +11,11 @@ rule gembs_report:
         calls_singals=expand("results/calls/{barcode}/.continue", barcode=get_barcodes),
         extract_signals=expand("results/extract/{barcode}/.continue", barcode=get_barcodes)
     output:
-        report_dir=directory(f"{config['gembs_base']}/report"),
-        signal=f"{config["gembs_base"]}/report/.continue"
+        report_dir=directory(f"results/report"),
+        signal=f"results/report/.continue"
     params:
         project=f"--project {config.get('project')}" if config.get("project", False) else "",
+    container: "docker://clarity001/gembs:latest"
     shell:
         """
         gemBS report {params.project}

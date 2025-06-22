@@ -4,6 +4,7 @@
 cores: 64
 rerun-incomplete: True
 printshellcmds: True
+retries: 3
 
 resources:
   mapping_jobs: 1

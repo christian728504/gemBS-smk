@@ -1,7 +1,8 @@
 rule parse_map_qc_html:
     input:
-        signal=config["gembs_base"] + "/report/.continue"
+        signal="results/report/.continue"
     output:
-        json=config["gembs_base"] + "/report/mapping/{barcode}/{barcode}_map_qc.json",
+        json="results/report/mapping/{barcode}/{barcode}_map_qc.json",
+    container: "docker://clarity001/gembs:latest"
     script:
         "scripts/parse_map_qc_html.py"

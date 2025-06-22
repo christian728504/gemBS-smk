@@ -5,6 +5,7 @@ rule gembs_prepare_and_index:
     output:
         indexes=directory("results/indexes"),
         signal="results/indexes/.continue"
+    container: "docker://clarity001/gembs:latest"
     shell:
         """
         gemBS prepare --config {input.conf} --text-metadata {input.csv}

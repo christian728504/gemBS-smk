@@ -8,11 +8,12 @@ rule make_coverage_bigwig:
     output:
         bigwig="results/extract/{barcode}/{barcode}_cpg.bw"
     params:
-        chrom_sizes=f"results/indexes/{config["gembs_reference_basename"]}.gemBS.contig_sizes"
-    threads: 24
+        chrom_sizes=f"results/indexes/{REFERENCE_BASENAME}.gemBS.contig_sizes"
+    # threads: 24
+    container: "docker://clarity001/gembs:latest"
     shell:
         """
-        gzip -dc {input.cpg_bed} |
+        pigz -dc -p {threads} {input.cpg_bed} |
         tail -n +2 |
         qsvlite select -d '\t' -n 1,2,3,10 |
         qsvlite fmt -t '\t' |

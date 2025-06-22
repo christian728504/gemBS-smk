@@ -1,6 +1,7 @@
 rule make_conf:
     output:
         conf="results/gembs.conf"
+    container: "docker://clarity001/gembs:latest"
     run:
         from jinja2 import Template
         import gzip

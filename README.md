@@ -56,21 +56,11 @@ snakemake --cores 2 --sdm conda apptainer --directory .test
 - Christian Ramirez
   - University of UMass Chan Medical School
 
-## References
-
-## Environment
-
-- bigtools v0.5.6
-  - `cargo install bigtools`
-- [gemBS-rs](https://github.com/heathsc/gemBS-rs) (install to user directory ~/.local/bin if no sudo)
-- qsv
-  - `cargo install qsv --locked --features all_features`
-
 ## TODO
 
-- Replace `<owner>` and `<repo>` everywhere in the template with the correct user name/organization, and the repository name. The workflow will be automatically added to the [snakemake workflow catalog](https://snakemake.github.io/snakemake-workflow-catalog/index.html) once it is publicly available on Github.
-- Replace `<name>` with the workflow name (can be the same as `<repo>`).
-- Replace `<description>` with a description of what the workflow does.
-- Update the [deployment](#deployment-options), [authors](#authors) and [references](#references) sections.
-- Update the `README.md` badges. Add or remove badges for `conda`/`singularity`/`apptainer` usage depending on the workflow's [deployment](#deployment-options) options.
-- Do not forget to also adjust the configuration-specific `config/README.md` file.
+- [ ] Update the prepare and index rule to accept a tar.gz file, to initialize the pipeline (effectively skipping this lenght step)
+- [ ] SLURM support
+  - [ ] Docker environment
+  - [ ] Testing (does gemBS work if distributed across SLURM nodes?)
+  - [ ] Make average coverage json (mapping qc) readable with proper indentation
+  - [ ] 

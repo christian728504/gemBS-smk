@@ -7,6 +7,7 @@ rule gembs_calls:
         bcf="results/calls/{barcode}/{barcode}.bcf",
         bcf_csi="results/calls/{barcode}/{barcode}.bcf.csi",
         bcf_md5="results/calls/{barcode}/{barcode}.bcf.md5"
+    container: "docker://clarity001/gembs:latest"
     shell:
         """
         gemBS call --barcode {wildcards.barcode}

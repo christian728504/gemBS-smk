@@ -40,10 +40,8 @@ def to_dataframes(html_content):
     return tables_dict
 
 def main():
-    base_dir = snakemake.config["gembs_base"]
     barcode = snakemake.wildcards.barcode
-    
-    html_path = f"{base_dir}/report/mapping/{barcode}/{barcode}.html"
+    html_path = f"results/report/mapping/{barcode}/{barcode}.html"
     
     with open(html_path, 'r') as f:
         html_content = f.read()

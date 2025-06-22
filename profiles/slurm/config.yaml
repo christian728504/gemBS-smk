@@ -1,0 +1,48 @@
+executor: slurm
+jobs: 128
+
+default-resources:
+  mem_mb: 32000
+  threads: 32
+  cores: 32
+  runtime: 720
+  slurm_partition: 12hours
+
+set-resources:
+  make_conf:
+    mem_mb: 4000
+    threads: 4
+    cores: 4
+    runtime: 30
+    slurm_partition: 30mins
+  make_gembs_metadata:
+    mem_mb: 4000
+    threads: 4
+    cores: 4
+    runtime: 30
+    slurm_partition: 30mins
+  gembs_prepare_and_index:
+    mem_mb: 128000
+    threads: 88
+    cores: 88
+  parse_map_qc_html:
+    mem_mb: 4000
+    threads: 4
+    cores: 4
+    runtime: 30
+    slurm_partition: 30mins
+  gembs_map:
+    threads: 64
+    cores: 64
+
+use-apptainer: True
+apptainer-prefix: workflow/envs
+software-deployment-method: "apptainer"
+apptainer-args: "-B /zata,/data"
+
+rerun-incomplete: True
+printshellcmds: True
+retries: 3
+
+resources:
+  mapping_jobs: 4

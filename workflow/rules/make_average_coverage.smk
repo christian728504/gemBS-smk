@@ -4,6 +4,7 @@ rule make_average_coverage:
         bam="results/mapping/{barcode}/{barcode}.bam",
     output:
         qc="results/mapping/{barcode}/average_coverage.json"
-    threads: 16
+    # threads: 16
+    container: "docker://clarity001/gembs:latest"
     script:
         "scripts/make_average_coverage.py"

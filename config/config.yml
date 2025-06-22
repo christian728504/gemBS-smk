@@ -1,11 +1,19 @@
 # Pipeline configuration
-pipeline_type: "wgbs"
-samples: ".test2/metadata.tsv"
-project: "TEST"
-# indexed_reference: "resources/ENCFF603ORM.tar.gz"
+samples: "/zata/zippy/ramirezc/gembs-smk/.test3"
+project: "MOHD"
 gembs_reference: "resources/GRCh38_no_alt_analysis_set_GCA_000001405.15.fasta.gz"
-gembs_reference_basename: "GRCh38_no_alt_analysis_set_GCA_000001405.15"
-gembs_base: "results"
-gembs_threads: "64"
-gembs_jobs: "16"
 gembs_benchmark_mode: "False"
+
+# Default resources
+threads: "32"
+cores: "32"
+jobs: "16"
+memory: "32G"
+
+# Mapping resources
+mapping_cores: "64"
+
+# Index resources
+index_threads: "88"
+index_cores: "88"
+index_memory: "128G"
