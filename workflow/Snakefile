@@ -1,7 +1,7 @@
 from snakemake.utils import validate
 
-workdir: "/zata/zippy/ramirezc/gembs_smk"
 configfile: "config/config.yml"
+workdir: config["workdir"]
 
 # validate(config, "config/schemas/config.schema.yaml")
 # validate(config["samples"], "../config/schemas/samples.schema.yml")

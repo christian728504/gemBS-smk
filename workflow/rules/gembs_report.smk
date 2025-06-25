@@ -16,8 +16,10 @@ rule gembs_report:
     params:
         project=f"--project {config.get('project')}" if config.get("project", False) else "",
     container: "docker://clarity001/gembs:latest"
+    log: "results/logfiles/report.log"
     shell:
         """
+        exec >> {log} 2>&1
         gemBS report {params.project}
         touch {output.signal}
         """

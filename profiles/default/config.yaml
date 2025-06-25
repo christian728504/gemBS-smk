@@ -6,5 +6,10 @@ rerun-incomplete: True
 printshellcmds: True
 retries: 3
 
+use-apptainer: True
+apptainer-prefix: workflow/envs
+software-deployment-method: "apptainer"
+apptainer-args: "-B /zata,/data"
+
 resources:
   mapping_jobs: 1

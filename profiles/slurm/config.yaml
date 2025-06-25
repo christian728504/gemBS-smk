@@ -21,10 +21,16 @@ set-resources:
     cores: 4
     runtime: 30
     slurm_partition: 30mins
-  gembs_prepare_and_index:
-    mem_mb: 128000
-    threads: 88
-    cores: 88
+  gembs_prepare:
+    mem_mb: 4000
+    threads: 4
+    cores: 4
+    runtime: 30
+    slurm_partition: 30mins
+  gembs_index:
+    threads: 64
+    cores: 64
+    mem_mb: 96000
   parse_map_qc_html:
     mem_mb: 4000
     threads: 4
@@ -32,8 +38,11 @@ set-resources:
     runtime: 30
     slurm_partition: 30mins
   gembs_map:
-    threads: 64
-    cores: 64
+    threads: 88
+    cores: 88
+    mem_mb: 128000
+    runtime: 7200
+    slurm_partition: 5days
 
 use-apptainer: True
 apptainer-prefix: workflow/envs
@@ -45,4 +54,4 @@ printshellcmds: True
 retries: 3
 
 resources:
-  mapping_jobs: 4
+  mapping_jobs: 1

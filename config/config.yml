@@ -1,8 +1,11 @@
 # Pipeline configuration
+workdir: "/zata/zippy/ramirezc/gembs-smk"
 samples: "/zata/zippy/ramirezc/gembs-smk/.test3"
 project: "MOHD"
+gembs_index: "resources/indexes.tar.lz4"
 gembs_reference: "resources/GRCh38_no_alt_analysis_set_GCA_000001405.15.fasta.gz"
 gembs_benchmark_mode: "False"
+tmpdir: "/tmp"
 
 # Default resources
 threads: "32"
@@ -11,9 +14,12 @@ jobs: "16"
 memory: "32G"
 
 # Mapping resources
-mapping_cores: "64"
+mapping_threads: "44"
+sort_threads: "44"
+mapping_cores: "88"
+mapping_memory: "128G"
 
 # Index resources
-index_threads: "88"
-index_cores: "88"
-index_memory: "128G"
+index_threads: "64"
+index_cores: "64"
+index_memory: "96G"

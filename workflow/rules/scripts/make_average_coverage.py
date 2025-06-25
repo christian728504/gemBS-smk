@@ -62,7 +62,7 @@ def main():
     basename = os.path.basename(reference_path)
     pattern = r"\.(fa|fasta|fa\.gz|fasta\.gz)$"
     reference_name = re.sub(pattern, '', basename)
-    chrom_sizes = str(Path(snakemake.config.get("gembs_base")).joinpath("indexes").joinpath(reference_name + ".gemBS.contig_sizes"))
+    chrom_sizes = str(Path("results/indexes").joinpath(reference_name + ".gemBS.contig_sizes"))
         
     samtools_stats = get_samtools_stats(bam_file, snakemake.threads)
     genome_size = calculate_genome_size(chrom_sizes)

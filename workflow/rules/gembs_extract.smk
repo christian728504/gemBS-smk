@@ -22,10 +22,11 @@ rule gembs_extract:
     params:
         phred_threshold=f"--phred-threshold {config.get('gembs_extract_phred_threshold')}" if config.get("gembs_extract_phred_threshold", False) else "",
         min_informative=f"--min-inform {config.get('gembs_extract_min_inform')}" if config.get("gembs_extract_min_inform", False) else "",
-    # threads: 32
     container: "docker://clarity001/gembs:latest"
+    log: "results/logfiles/extract/{barcode}.log"
     shell:
         """
+        exec >> {log} 2>&1
         gemBS extract --barcode {wildcards.barcode} {params.phred_threshold} {params.min_informative}
         for i in {output.bed_gz}; do
             base=$(basename "$i" .bed.gz)

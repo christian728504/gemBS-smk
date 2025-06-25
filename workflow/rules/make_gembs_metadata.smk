@@ -57,7 +57,8 @@ checkpoint make_gembs_metadata:
             }
             records.append(record)
             
-        wgbs_metadata = pl.from_dicts(records).pivot(
+        # wgbs_metadata = pl.from_dicts(records).pivot(
+        wgbs_metadata = pl.from_dicts(records[:2]).pivot(
                 index=["Barcode", "Project", "Assay", "Dataset"],
                 on="Read", 
                 values="File",
