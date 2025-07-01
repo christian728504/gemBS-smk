@@ -7,3 +7,8 @@ resources
 notebooks/
 workflow/envs/
 sstat.txt
+TESTING
+old_pipeline
+.cache
+workflow/rules/envs/*
+!workflow/rules/envs/gem-mapper.yml

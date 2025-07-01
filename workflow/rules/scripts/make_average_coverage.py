@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # Adapted from  https://github.com/ENCODE-DCC/wgbs-pipeline/blob/dev/wgbs_pipeline/calculate_average_coverage.py
 """
 Calculates average coverage from a bam file. The formula for this is given by this:
@@ -8,14 +10,14 @@ aligned read counts is the number of reads in the bam. The read length is obtain
 samtools-stats `RL`, see http://www.htslib.org/doc/samtools-stats.html for details.
 """
 
-from snakemake.script import snakemake
+import argparse
 import tempfile
 from typing import Any, Dict, List, Tuple
-import os
-import re
-
+import sys
+import json
 import pysam
 from pathlib import Path
+from collections import OrderedDict
 from qc_utils import QCMetric, QCMetricRecord
 from qc_utils.parsers import parse_samtools_stats
 
@@ -57,15 +59,15 @@ def make_qc_record(qcs: List[Tuple[str, Dict[str, Any]]]) -> QCMetricRecord:
 
 
 def main():
-    bam_file = snakemake.input.bam
-    reference_path = snakemake.config.get("gembs_reference")
-    basename = os.path.basename(reference_path)
-    pattern = r"\.(fa|fasta|fa\.gz|fasta\.gz)$"
-    reference_name = re.sub(pattern, '', basename)
-    chrom_sizes = str(Path("results/indexes").joinpath(reference_name + ".gemBS.contig_sizes"))
-        
-    samtools_stats = get_samtools_stats(bam_file, snakemake.threads)
-    genome_size = calculate_genome_size(chrom_sizes)
+    parser = argparse.ArgumentParser(description='Gather additional metrics from the alignment file')
+    parser.add_argument('--bamfile', help='Path to bam file')
+    parser.add_argument('--chromsizes', help="Path to chromsizes file")
+    parser.add_argument('--threads', help='Number of threads (samtools flagstat)')
+    parser.add_argument('--gem_mapper_json', help='Where to output metrics')
+    args = parser.parse_args()
+    
+    samtools_stats = get_samtools_stats(args.bamfile, args.threads)
+    genome_size = calculate_genome_size(args.chromsizes)
     average_coverage = calculate_average_coverage(
         genome_size=genome_size,
         aligned_read_count=samtools_stats["reads mapped"],
@@ -74,8 +76,14 @@ def main():
     qc_record = make_qc_record(
         [("samtools_stats", samtools_stats), ("average_coverage", average_coverage)]
     )
-    qc_record.save(snakemake.output.qc)
-
+    
+    with open(args.gem_mapper_json, "r") as f:
+        existing_data = json.load(f, object_pairs_hook=OrderedDict)
+    
+    existing_data.update(qc_record.to_ordered_dict())
+    
+    with open(args.gem_mapper_json, "w") as f:
+        json.dump(existing_data, f, indent=2)
 
 if __name__ == "__main__":
     main()

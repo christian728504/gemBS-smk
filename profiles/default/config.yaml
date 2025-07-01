@@ -1,7 +1,7 @@
 # cores: 1
 # debug: True
 
-cores: 64
+cores: 68
 rerun-incomplete: True
 printshellcmds: True
 retries: 3

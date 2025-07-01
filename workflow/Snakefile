@@ -1,23 +1,17 @@
-from snakemake.utils import validate
-
 configfile: "config/config.yml"
 workdir: config["workdir"]
 
-# validate(config, "config/schemas/config.schema.yaml")
-# validate(config["samples"], "../config/schemas/samples.schema.yml")
+if config["make_index"] == True:
+    include: "rules/indexing_1.smk"
+    localrules: indexing
+else:
+    include: "rules/indexing_2.smk"
 
 include: "rules/common.smk"
-include: "rules/make_conf.smk"
-include: "rules/make_gembs_metadata.smk"
-include: "rules/gemsbs_prepare_and_index.smk"
-include: "rules/gembs_map.smk"
-include: "rules/make_average_coverage.smk"
-include: "rules/gembs_calls.smk"
-include: "rules/gembs_extract.smk"
-include: "rules/make_coverage_bigwig.smk"
+include: "rules/mapping.smk"
+include: "rules/call.smk"
+include: "rules/extract.smk"
 include: "rules/make_bedmethyl_pearson_correlation.smk"
-include: "rules/gembs_report.smk"
-include: "rules/parse_map_qc_html.smk"
 
 onstart:
     print("\n--- Analysis started ---\n")
@@ -28,14 +22,11 @@ onerror:
 
 rule all:
     input:
-        "results/gembs.conf",
-        "results/gembs_metadata.csv",
         "results/indexes/.continue",
-        get_mapping_outputs,
-        get_average_coverage_outputs,
-        get_call_outputs,
-        get_extract_outputs,
-        get_coverage_bigwigs,
-        get_bedmethyl_pearson_correlation_outputs,
-        "results/report/.continue",
-        get_parse_map_qc_html_outputs
+        expand(mapping_patterns, barcode=barcodes),
+        expand(chrom_ctg_bed_pattern, barcode=barcodes, contig=CONTIGS),
+        expand(calling_patterns, barcode=barcodes, contig=CONTIGS),
+        expand("results/calls/{barcode}/.continue", barcode=barcodes),
+        expand("results/extract/{barcode}/.continue", barcode=barcodes),
+        expand("results/{experiment}_pearson_correlation_qc.csv", experiment=experiments)
+        

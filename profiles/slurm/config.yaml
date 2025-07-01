@@ -1,57 +1,42 @@
 executor: slurm
 jobs: 128
 
-default-resources:
-  mem_mb: 32000
-  threads: 32
-  cores: 32
-  runtime: 720
-  slurm_partition: 12hours
-
 set-resources:
-  make_conf:
-    mem_mb: 4000
-    threads: 4
-    cores: 4
-    runtime: 30
-    slurm_partition: 30mins
-  make_gembs_metadata:
-    mem_mb: 4000
-    threads: 4
-    cores: 4
-    runtime: 30
-    slurm_partition: 30mins
-  gembs_prepare:
-    mem_mb: 4000
-    threads: 4
-    cores: 4
-    runtime: 30
-    slurm_partition: 30mins
-  gembs_index:
-    threads: 64
-    cores: 64
-    mem_mb: 96000
-  parse_map_qc_html:
-    mem_mb: 4000
-    threads: 4
-    cores: 4
-    runtime: 30
-    slurm_partition: 30mins
-  gembs_map:
-    threads: 88
-    cores: 88
-    mem_mb: 128000
+  indexing:
+    runtime: 720
+    slurm_partition: 12hours
+  mapping:
     runtime: 7200
     slurm_partition: 5days
+  generate_chrome_ctgs:
+    runtime: 30
+    slurm_partition: 30mins
+  calling:
+    runtime: 240
+    slurm_partition: 4hours
+  merge_chroms:
+    runtime: 240
+    slurm_partition: 4hours
+  gembs_extract:
+    runtime: 720
+    slurm_partition: 12hours
+  make_bedmethyl_pearson_correlation:
+    runtime: 30
+    slurm_partition: 30mins
 
 use-apptainer: True
-apptainer-prefix: workflow/envs
-software-deployment-method: "apptainer"
-apptainer-args: "-B /zata,/data"
+apptainer-prefix: workflow/rules/envs
+software-deployment-method: apptainer
+apptainer-args: -B /zata,/data
+
+use-conda: True
+conda-prefix: workflow/rules/envs
+software-deployment-method: conda
 
 rerun-incomplete: True
 printshellcmds: True
-retries: 3
+# retries: 1
 
 resources:
   mapping_jobs: 1
+  calling_jobs: 12

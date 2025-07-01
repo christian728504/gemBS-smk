@@ -1,98 +1,66 @@
 import polars as pl
 import os
-import re
 
-reference_filename = os.path.basename(config["gembs_reference"])
-REFERENCE_BASENAME = re.sub(r'\.(fa|fasta|fa\.gz|fasta\.gz)$', '', reference_filename)
+wildcard_constraints:
+    barcode="[A-Za-z0-9]+",
+    contig="(chr[0-9XY]+|Pool)"
 
-def get_mapping_outputs(wildcards):
-    path = checkpoints.make_gembs_metadata.get(**wildcards).output.csv
-    schema = {"Barcode": pl.String}
-    barcodes = pl.read_csv(path, schema_overrides=schema)["Barcode"].unique().to_list()
-    bam, csi, md5 = [], [], []
-    for barcode in barcodes:
-        bam.append(f"results/mapping/{barcode}/{barcode}.bam")
-        csi.append(f"results/mapping/{barcode}/{barcode}.bam.csi")
-        md5.append(f"results/mapping/{barcode}/{barcode}.bam.md5")
-    outputs = bam + csi + md5
-    return outputs
+if not os.path.exists("results/logfiles"):
+    os.makedirs("results/logfiles")
 
-def get_average_coverage_outputs(wildcards):
-    path = checkpoints.make_gembs_metadata.get(**wildcards).output.csv
-    schema = {"Barcode": pl.String}
-    barcodes = pl.read_csv(path, schema_overrides=schema)["Barcode"].unique().to_list()
-    outputs = [f"results/mapping/{barcode}/average_coverage.json" for barcode in barcodes]
-    print(outputs)
-    return outputs
+tmpdir = config["tmpdir"]
+METADATA = pl.read_csv(config["metadata"])
 
-def get_call_outputs(wildcards):
-    path = checkpoints.make_gembs_metadata.get(**wildcards).output.csv
-    schema = {"Barcode": pl.String}
-    barcodes = pl.read_csv(path, schema_overrides=schema)["Barcode"].unique().to_list()
-    bcf, csi, md5 = [], [], []
-    for barcode in barcodes:
-        bcf.append(f"results/calls/{barcode}/{barcode}.bcf")
-        csi.append(f"results/calls/{barcode}/{barcode}.bcf.csi")
-        md5.append(f"results/calls/{barcode}/{barcode}.bcf.md5")
-    outputs = bcf + csi + md5
-    print(outputs)
-    return outputs
+barcodes = METADATA["Barcode"].to_list()
+datasets = METADATA["Dataset"].to_list()
 
-def get_extract_outputs(wildcards):
-    path = checkpoints.make_gembs_metadata.get(**wildcards).output.csv
-    schema = {"Barcode": pl.String}
-    barcodes = pl.read_csv(path, schema_overrides=schema)["Barcode"].unique().to_list()
-    outputs = []
-    for barcode in barcodes:
-        outputs.append(f"results/extract/{barcode}/.continue")
-    print(outputs)
-    return outputs
+experiments = METADATA.select("Dataset").with_columns(
+    pl.col("Dataset").str.split("_").list.get(0).alias("Experiment")
+)["Experiment"].unique().to_list()
 
-def get_coverage_bigwigs(wildcards):
-    path = checkpoints.make_gembs_metadata.get(**wildcards).output.csv
-    schema = {"Barcode": pl.String}
-    barcodes = pl.read_csv(path, schema_overrides=schema)["Barcode"].unique().to_list()
-    outputs = [f"results/extract/{barcode}/{barcode}_cpg.bw" for barcode in barcodes]
-    print(outputs)
-    return outputs
+read_1_files = METADATA["File1"].to_list()
+read_2_files = METADATA["File2"].to_list()
+CONTIGS = [f"chr{i}" for i in range(1, 23)] + ["chrX", "chrY", "Pool"]
 
-def get_bedmethyl_pearson_correlation_outputs(wildcards):
-    path = checkpoints.make_gembs_metadata.get(**wildcards).output.csv
-    schema = {"Barcode": pl.String}
-    metadata = pl.read_csv(path, schema_overrides=schema)
-    gembs_metadata = pl.read_csv(path, schema_overrides=schema)
+dataset_lookup = dict(zip(barcodes, datasets))
+READ_LOOKUP = dict(zip(barcodes, zip(read_1_files, read_2_files)))
+
+def get_r1(wildcards):
+    r1 = READ_LOOKUP.get(wildcards.barcode)[0]
+    return r1
+
+def get_r2(wildcards):
+    r2 = READ_LOOKUP.get(wildcards.barcode)[1]
+    return r2
+
+mapping_patterns = [
+    "results/mapping/{barcode}/{barcode}.bam",
+    "results/mapping/{barcode}/{barcode}.bam.md5", 
+    "results/mapping/{barcode}/{barcode}.json",
+    "results/mapping/{barcode}/.continue"
+]
+
+chrom_ctg_bed_pattern = "results/calls/{barcode}/{barcode}_{contig}_ctgs.bed"
+
+def get_chrom_bcfs(wildcards):
+     return expand("results/calls/{barcode}/{barcode}_{contig}.bcf", barcode=wildcards.barcode, contig=CONTIGS)
+
+calling_patterns = [
+    "results/calls/{barcode}/{barcode}_{contig}.bcf",
+    "results/calls/{barcode}/{barcode}_{contig}.json"
+]
+
+def make_bedmethyl_pearson_correlation(wildcards):
     grouped = (
-        gembs_metadata
+        METADATA
         .with_columns(
             pl.col("Dataset").str.split("_").list.get(0).alias("Experiment")
         )
         .group_by("Experiment")
         .agg("Barcode")
-        .to_dicts()
+        .filter(pl.col("Experiment") == wildcards.experiment)
+        .select("Barcode")
+        .item()
     )
-    outputs = []
-    for group in grouped:
-        outputs.append(f"results/{group["Experiment"]}_pearson_correlation_qc.csv")
-    print(outputs)
-    return outputs
-
-# def get_report_outputs(wildcards):
-#     path = checkpoints.make_gembs_metadata.get(**wildcards).output.csv
-#     schema = {"Barcode": pl.String}
-#     barcodes = pl.read_csv(path, schema_overrides=schema)["Barcode"].unique().to_list()
-#     isize, mapq, html = [], [], []
-#     for barcode in barcodes:
-#         isize.append(f"{config["gembs_base"]}/report/mapping/{barcode}/images/{barcode}_isize.png")
-#         mapq.append(f"{config["gembs_base"]}/report/mapping/{barcode}/images/{barcode}_mapq.png")
-#         html.append(f"{config["gembs_base"]}/report/mapping/{barcode}/{barcode}.html")
-#     outputs = isize + mapq + html
-#     print(outputs)
-#     return outputs
-
-def get_parse_map_qc_html_outputs(wildcards):
-    path = checkpoints.make_gembs_metadata.get(**wildcards).output.csv
-    schema = {"Barcode": pl.String}
-    barcodes = pl.read_csv(path, schema_overrides=schema)["Barcode"].unique().to_list()
-    outputs = [f"results/report/mapping/{barcode}/{barcode}_map_qc.json" for barcode in barcodes]
-    print(outputs)
-    return outputs
+    inputs = [f"results/extract/{barcode}/{barcode}_cpg.bed.gz" for barcode in grouped]
+    return inputs
