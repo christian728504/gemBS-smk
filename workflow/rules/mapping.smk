@@ -19,13 +19,11 @@ rule mapping:
         tmpdir=config['tmpdir']
     resources:
         mapping_jobs=1,
-        threads=88,
-        cores=88,
-        mem_mb=256000,
-        slurm_extra="--cpu-freq=High --exclusive",
-        tmpdir=config['tmpdir']
-    # container: "docker://clarity001/gembs:latest"
-    conda: "envs/gem-mapper.yml"
+        threads=32,
+        cores=16,
+        mem_mb=64000,
+        slurm_extra="--nodelist=z1064 --cpu-freq=High --exclusive",
+    container: "docker://clarity001/gembs:latest"
     log: "results/logfiles/mapping/{barcode}.log"
     shell:
         """
@@ -41,14 +39,14 @@ rule mapping:
         echo "$(date): Copied files to /tmp"
 
         gem-mapper \
-            --threads {resources.threads} \
+            -t {resources.threads} \
             -I $OUTPUT_DIR/$(basename {input.gem_index}) \
-            --i1 $OUTPUT_DIR/$(basename {input.r1}) \
-            --i2 $OUTPUT_DIR/$(basename {input.r2}) \
-            --paired-end-alignment \
-            --report-file $OUTPUT_DIR/$(basename {output.json}) \
-            --sam-read-group-header "@RG\tID:{params.dataset}\tSM:\tBC:{params.barcode}\tPU:{params.dataset}" | \
-        ./workflow/rules/scripts/read_filter.py $OUTPUT_DIR/$(basename {input.chromsizes}) | \
+            -1 $OUTPUT_DIR/$(basename {input.r1}) \
+            -2 $OUTPUT_DIR/$(basename {input.r2}) \
+            -p \
+            --report-file=$OUTPUT_DIR/$(basename {output.json}) \
+            -r "@RG\tID:{params.dataset}\tSM:\tBC:{params.barcode}\tPU:{params.dataset}" | \
+        read_filter.py $OUTPUT_DIR/$(basename {input.chromsizes}) | \
         samtools sort -o $OUTPUT_DIR/$(basename {output.bam}) \
             -T "$OUTPUT_DIR/sort" \
             --threads {resources.threads} \
@@ -60,7 +58,7 @@ rule mapping:
 
         echo "$(date): md5sum completed"
 
-        ./workflow/rules/scripts/make_average_coverage.py \
+        make_average_coverage.py \
             --bamfile $OUTPUT_DIR/$(basename {output.bam}) \
             --chromsizes $OUTPUT_DIR/$(basename {input.chromsizes}) \
             --threads {resources.threads} \

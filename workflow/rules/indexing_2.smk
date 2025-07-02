@@ -23,7 +23,9 @@ rule indexing:
         mkdir -p "$OUTPUT_DIR"
 
         curl -L {params.indexes_tar} | lz4 -dc | tar -xvf - -C $OUTPUT_DIR
-        mv $OUTPUT_DI/indexes {output.indexes}
+        mv $OUTPUT_DIR/indexes {output.indexes}
+
+        sleep 10
 
         rm -rf "$OUTPUT_DIR/indexes"
         touch {output.indexes}

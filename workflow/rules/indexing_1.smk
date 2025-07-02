@@ -18,7 +18,6 @@ rule indexing:
         mem_mb=128000,
         disk_mb=300000,
         slurm_extra="--cpu-freq=High --exclusive",
-        tmpdir=config['tmpdir']
     params:
         assembly=lambda w: f"-a {config.get('assembly')}" if config.get('assembly') else '',
         species=lambda w: f"-s {config.get('species')}" if config.get('species') else '',

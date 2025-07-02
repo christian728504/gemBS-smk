@@ -3,7 +3,6 @@ workdir: config["workdir"]
 
 if config["make_index"] == True:
     include: "rules/indexing_1.smk"
-    localrules: indexing
 else:
     include: "rules/indexing_2.smk"
 

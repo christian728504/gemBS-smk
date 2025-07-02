@@ -12,3 +12,4 @@ old_pipeline
 .cache
 workflow/rules/envs/*
 !workflow/rules/envs/gem-mapper.yml
+.nv
