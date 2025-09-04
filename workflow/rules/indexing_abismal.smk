@@ -1,24 +1,14 @@
-# TODO: Finish developing this rule. Should take user defined reference_fasta as input (NOT COMPRESSED).
-# Then run gem-indexer on it
-
 rule indexing:
     input:
         fasta=config['reference']
     output:
-        gem_index="results/indexes/reference.gem",
+        abismal_index="results/indexes/reference.idx",
         fasta="results/indexes/reference.fasta",
         fasta_fai="results/indexes/reference.fasta.fai",
         chromsizes="results/indexes/chromsizes.tsv",
         sam_dict="results/indexes/sam_dict.tsv",
         indexes=directory("results/indexes"),
         signal="results/indexes/.continue"
-    resources:
-        runtime=720,
-        slurm_partition="12hours",
-        slurm_extra="--constraint=cascadelake --cpu-freq=High-High:Performance",
-        threads=52,
-        cpus_per_task=52,
-        mem_mb=500000
     params:
         assembly=lambda w: f"-a {config.get('assembly')}" if config.get('assembly') else '',
         species=lambda w: f"-s {config.get('species')}" if config.get('species') else '',
@@ -49,15 +39,7 @@ rule indexing:
             {params.species} \
             $OUTPUT_DIR/$(basename {output.fasta})
         
-        GEM_OUTPUT=$(basename {output.gem_index})
-        cd "$OUTPUT_DIR"
-        gem-indexer \
-            -i $(basename {output.fasta}) \
-            -o ${{GEM_OUTPUT%.*}} \
-            --bisulfite-index \
-            --text-sampling-rate {params.sampling_rate} \
-            --threads {resources.threads}
-        cd -
+        abismal idx $OUTPUT_DIR/$(basename {output.fasta}) $OUTPUT_DIR/$(basename {output.abismal_index})
 
         cp -t {output.indexes} "$OUTPUT_DIR"/* 
         rm -rf "$OUTPUT_DIR"

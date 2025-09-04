@@ -18,12 +18,7 @@ rule gembs_extract:
         bigwigs=[
             "results/extract/{barcode}/{barcode}_neg.bw",
             "results/extract/{barcode}/{barcode}_pos.bw",
-            "results/extract/{barcode}/{barcode}_coverage_cpg.bw"
         ]
-    resources:
-        threads=64,
-        cores=64,
-        mem_mb=128000
     params:
         tmpdir=config['tmpdir'],
         barcode=lambda w: w.barcode,
@@ -46,7 +41,7 @@ rule gembs_extract:
             --compress \
             --md5 \
             --cpgfile $OUTPUT_DIR/$(basename {output.cpgfile}) \
-	        --noncpgfile $OUTPUT_DIR/$(basename {output.noncpgfile}) \
+	          --noncpgfile $OUTPUT_DIR/$(basename {output.noncpgfile}) \
             --bed-methyl $OUTPUT_DIR/{params.barcode} \
             --tabix \
             --threads {resources.threads} \
@@ -54,20 +49,75 @@ rule gembs_extract:
             {params.mode} \
             {params.bw_mode} \
             $OUTPUT_DIR/$(basename {input.bcf})
-        
-        pigz -dc $OUTPUT_DIR/$(basename {output.bed_gz[2]}) |
-        tail -n +2 |
-        qsvlite select -d '\t' -n 1,2,3,10 |
-        qsvlite fmt -t '\t' |
-        sort -k1,1 -k2,2n |
-        bigtools bedgraphtobigwig \
-            --sorted all \
-            --nthreads $(({resources.threads} / 2)) \
-            - $OUTPUT_DIR/$(basename {input.chromsizes}) $OUTPUT_DIR/$(basename {output.bigwigs[2]})
 
         rm -rf $OUTPUT_DIR/$(basename {input.chromsizes}) $OUTPUT_DIR/$(basename {input.bcf}) $OUTPUT_DIR/$(basename {input.bcf_csi})
         cp -t results/extract/{params.barcode} "$OUTPUT_DIR"/* 
         rm -rf "$OUTPUT_DIR"
+
+        touch {output.signal}
+        """
+
+rule extract_signal:
+    input:
+        signal="results/extract/{barcode}/.continue",
+        chromsizes=rules.indexing.output.chromsizes,
+        bed_gz=[
+            "results/extract/{barcode}/{barcode}_chg.bed.gz",
+            "results/extract/{barcode}/{barcode}_chh.bed.gz",
+            "results/extract/{barcode}/{barcode}_cpg.bed.gz"
+        ],
+    output:
+        signal="results/extract_signal/{barcode}/.continue",
+        bigwigs=[
+            "results/extract_signal/{barcode}/{barcode}_cpg_neg.bw",
+            "results/extract_signal/{barcode}/{barcode}_cpg_pos.bw",
+            "results/extract_signal/{barcode}/{barcode}_chg_pos.bw",
+            "results/extract_signal/{barcode}/{barcode}_chg_neg.bw",
+            "results/extract_signal/{barcode}/{barcode}_chh_pos.bw",
+            "results/extract_signal/{barcode}/{barcode}_chh_neg.bw",
+        ]
+    container: "docker://clarity001/gembs:latest"
+    log: "results/logfiles/extract_signal/{barcode}.log"
+    shell:
+        """
+        python workflow/rules/scripts/extract_signal.py \
+            --bed-gz {input.bed_gz[0]} \
+                     {input.bed_gz[1]} \
+                     {input.bed_gz[2]} \
+            --chromsizes {input.chromsizes} \
+            --output-dir results/extract_signal/{wildcards.barcode} \
+            --barcode {wildcards.barcode} \
+            --log-file {log}
+        """
+
+rule get_methylc_and_coverage:
+    input:
+        signal="results/mapping/{barcode}/.continue",
+        chh_bed_gz="results/extract/{barcode}/{barcode}_chh.bed.gz",
+        chg_bed_gz="results/extract/{barcode}/{barcode}_chg.bed.gz",
+        cpg_bed_gz="results/extract/{barcode}/{barcode}_cpg.bed.gz",
+        chromsizes=rules.indexing.output.chromsizes
+    output:
+        signal="results/get_methylc_and_coverage/{barcode}/.continue",
+        methylc_bed_gz="results/get_methylc_and_coverage/{barcode}/{barcode}_methylc.bed.gz",
+        coverage_bigwigs=[
+            "results/get_methylc_and_coverage/{barcode}/{barcode}_coverage_neg.bw",
+            "results/get_methylc_and_coverage/{barcode}/{barcode}_coverage_pos.bw",
+        ]
+    container: "docker://clarity001/gembs:latest"
+    log: "results/logfiles/get_methylc_and_coverage/{barcode}.log"
+    shell:
+        """
+        exec >> {log} 2>&1
+
+        python workflow/rules/scripts/get_methylc_and_coverage.py \
+            --barcode {wildcards.barcode} \
+            --chh {input.chh_bed_gz} \
+            --chg {input.chg_bed_gz} \
+            --cpg {input.cpg_bed_gz} \
+            --chromsizes {input.chromsizes} \
+            --threads {resources.threads} \
+            --outdir results/get_methylc_and_coverage/{wildcards.barcode} \
 
         touch {output.signal}
         """

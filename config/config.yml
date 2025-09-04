@@ -6,7 +6,7 @@ assembly: "GRCh38" # Optional
 species: "Homo_sapiens" # Optional (Assert no whitespace)
 project: "MOHD"
 tmpdir: "/tmp" # Required
-make_index: False # Required
+make_index: True # Required
 indexes_tar: "https://users.wenglab.org/ramirezc/indexes.tar.lz4" # Optional
 # extra_references: "" # Optional
 

@@ -7,10 +7,6 @@ rule generate_chrome_ctgs:
     params:
         barcode=lambda w: w.barcode,
         tmpdir=config['tmpdir']
-    resources:
-        threads=8,
-        cores=8,
-        mem_mb=16000
     container: "docker://clarity001/gembs:latest"
     log: "results/logfiles/calls/{barcode}_ctgs.log"
     shell:
@@ -55,11 +51,6 @@ rule calling:
         ref_bias=config['calling']['reference_bias'],
         mapq=config['calling']['mapq_threshold'],
         qual=config['calling']['qual_threshold']
-    resources:
-        threads=32,
-        cores=32,
-        mem_mb=64000,
-        calling_jobs=1
     container: "docker://clarity001/gembs:latest"
     log: "results/logfiles/calls/{barcode}_{contig}.log"
     shell:
@@ -110,10 +101,6 @@ rule merge_chroms:
         barcode=lambda w: w.barcode,
         tmpdir=config['tmpdir'],
         out_type=config['calling']['output_type']
-    resources:
-        threads=64,
-        cores=64,
-        mem_mb=128000
     container: "docker://clarity001/gembs:latest"
     log: "results/logfiles/calls/{barcode}_merge.log"
     shell:

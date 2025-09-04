@@ -1,7 +1,8 @@
+
 rule mapping:
     input:
         signal="results/indexes/.continue",
-        gem_index=rules.indexing.output.gem_index,
+        abismal_index=rules.indexing.output.abismal_index,
         chromsizes=rules.indexing.output.chromsizes,
         r1=get_r1,
         r2=get_r2
@@ -27,18 +28,16 @@ rule mapping:
         OUTPUT_DIR={params.tmpdir}/{output.mapping}
         
         mkdir -p "$OUTPUT_DIR"
-        cp {input.gem_index} {input.chromsizes} {input.r1} {input.r2} $OUTPUT_DIR
+        cp {input.abismal_index} {input.chromsizes} {input.r1} {input.r2} $OUTPUT_DIR
 
         echo "$(date): Copied files to /tmp"
 
-        gem-mapper \
+        abismal map \
+            -v \
             -t {resources.threads} \
-            -I $OUTPUT_DIR/$(basename {input.gem_index}) \
-            -1 $OUTPUT_DIR/$(basename {input.r1}) \
-            -2 $OUTPUT_DIR/$(basename {input.r2}) \
-            -p \
-            --report-file=$OUTPUT_DIR/$(basename {output.json}) \
-            -r "@RG\tID:{params.dataset}\tSM:\tBC:{params.barcode}\tPU:{params.dataset}" | \
+            -i $OUTPUT_DIR/$(basename {input.abismal_index}) \
+            -B -o $OUTPUT_DIR/$(basename {output.bam}) \
+            $OUTPUT_DIR/$(basename {input.r1}) $OUTPUT_DIR/$(basename {input.r2}) | \
         read_filter.py $OUTPUT_DIR/$(basename {input.chromsizes}) | \
         samtools sort -o $OUTPUT_DIR/$(basename {output.bam}) \
             -T "$OUTPUT_DIR/sort" \
@@ -61,7 +60,7 @@ rule mapping:
 
         rm -rf $OUTPUT_DIR/$(basename {input.r1}) \
                 $OUTPUT_DIR/$(basename {input.r2}) \
-                $OUTPUT_DIR/$(basename {input.gem_index}) \
+                $OUTPUT_DIR/$(basename {input.abismal_index}) \
                 $OUTPUT_DIR/$(basename {input.chromsizes})
         cp -t {output.mapping} "$OUTPUT_DIR"/* 
         rm -rf "$OUTPUT_DIR"
